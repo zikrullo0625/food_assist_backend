@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use GuzzleHttp\Client;
+use App\Models\Ingredient;
 use Illuminate\Http\Request;
 use thiagoalessio\TesseractOCR\TesseractOCR;
 
@@ -10,27 +10,39 @@ class OCRController extends Controller
 {
     public function recognizeText(Request $request)
     {
-        // Получаем изображение из запроса
         $image = $request->file('image');
 
-        // Путь к временной директории для сохранения файла
         $path = $image->storeAs('temp', 'image.png', 'public');
 
-        // Путь к изображению
         $imagePath = storage_path('app/public/' . $path);
 
-        // Создаем экземпляр TesseractOCR
         $ocr = new TesseractOCR($imagePath);
 
-        // Указываем русский и английский языки
-        $ocr->lang('rus');
+        $ocr->lang('eng');
 
-        // Выполняем распознавание текста
         try {
             $text = $ocr->run();
-            return response()->json(['text' => $text]);
+
+            $words = preg_split('/\s+/', $text);
+
+            $filteredWords = array_filter($words, function($word) {
+                return preg_match('/^[a-zA-Zа-яА-ЯёЁ0-9]+$/u', $word);
+            });
+
+            $result = [];
+
+            foreach ($filteredWords as $word) {
+                $ingredient = Ingredient::where('name', $word)->first();
+
+                if ($ingredient) {
+                    $result[] = $ingredient;
+                }
+            }
+
+            return response()->json(['text' => $result]);
+
         } catch (\Exception $e) {
-            return response()->json(['text' => 'Ошибка при распознавании текста: ' . $e->getMessage()]);
+            return response()->json(['text' => 'Ошибка при распознавании текста: ' . $e->getMessage()], 500);
         }
     }
 }
