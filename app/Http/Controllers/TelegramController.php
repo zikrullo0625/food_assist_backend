@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
-class IngredientOCRController extends Controller
+class TelegramController extends Controller
 {
     protected string $botToken = '7789033027:AAH3jJPoTGXqb_0xQH7GYSnElt_avdqFCQU';
     protected string $ocrApiKey = 'K88393584388957';
