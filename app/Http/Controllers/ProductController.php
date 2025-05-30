@@ -18,11 +18,10 @@ class ProductController extends Controller
     {
         $user = User::find(Auth::id());
 
-        // Check if user has enough scans
         if ($user->scans < 1) {
             return response()->json([
                 'success' => false,
-                'scans' => false, // Changed to match frontend expectation (false = out of scans)
+                'scans' => false,
                 'message' => 'У вас закончились сканы'
             ]);
         }
@@ -71,7 +70,6 @@ class ProductController extends Controller
         try {
             $analysis = $gemini->analyze($text);
 
-            // Deduct scan only after successful analysis
             $user->scans -= 1;
             $user->save();
             $user->products()->create([
@@ -80,7 +78,6 @@ class ProductController extends Controller
                 'concerns' => $analysis['concerns'],
                 'image' => $imageUrl,
             ]);
-//            Log::channel('analyze')->info($product);
             return response()->json([
                 'success' => true,
                 'result' => array_merge($analysis, [
